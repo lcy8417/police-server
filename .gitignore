@@ -1,26 +1,22 @@
-# Python 관련
+# weight 폴더 내 .pt 파일들
+/weights/*.pt
+
+# static 내 모든 이미지 파일 (예: .png, .jpg, .jpeg 등)
+/static/**/*.png
+/static/**/*.jpg
+/static/**/*.jpeg
+
+# 캐시 / 빌드 / 임시 파일
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
-
-# 환경 파일
-.env
-*.env
-
-# VSCode, JetBrains 등 IDE 설정
-.vscode/
-.idea/
-
-# 로그 파일
 *.log
-
-# 캐시 및 임시 파일
-*.tmp
+*.sqlite3
+.DS_Store
 *.swp
-
-# Jupyter Notebook 체크포인트
-.ipynb_checkpoints/
-
-# 제외할 폴더
-/weights/
-/static/
+.env
+.venv/
+node_modules/
+dist/
+build/
+.cache/
