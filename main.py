@@ -3,7 +3,7 @@ from routes import crime, shoes, crime_process, search
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-app = FastAPI()
+app = FastAPI(debug=True)
 
 app.mount(
     "/crime_images", StaticFiles(directory="static/crime_images"), name="crime_images"
@@ -13,6 +13,12 @@ app.mount(
     "/crime_history",
     StaticFiles(directory="static/crime_history"),
     name="crime_history",
+)
+
+app.mount(
+    "/shoes_images/B",
+    StaticFiles(directory="static/shoes_images/B"),
+    name="shoes_images/B",
 )
 
 app.add_middleware(

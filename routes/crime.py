@@ -6,28 +6,15 @@ from sqlalchemy import text, Connection
 from sqlalchemy.exc import SQLAlchemyError
 from db.database import context_get_conn
 
-from typing import Optional, List
-from pydantic import BaseModel
 from datetime import datetime
 import base64
 import os.path as osp
 import os
 
+from schemas.crime import RegisterForm, CrimeHistory
+
 
 router = APIRouter(prefix="/crime", tags=["Crime"])
-
-
-class RegisterForm(BaseModel):
-    image: str
-    crimeNumber: str
-    imageNumber: Optional[str] = None
-    crimeName: Optional[str] = None
-    findTime: Optional[str] = None
-    requestOffice: Optional[str] = None
-    findMethod: Optional[str] = None
-    state: int = 0
-    ranking: int = 0
-    matchingShoes: Optional[str] = None
 
 
 # 등록 로직
@@ -153,20 +140,10 @@ async def get_crime_detail(
         )
 
 
-class CrimeHistory(BaseModel):
-    image: str
-    zoom: Optional[int] = 0
-    contrast: Optional[int] = 0
-    saturation: Optional[int] = 0
-    brightness: Optional[int] = 0
-    rotate: Optional[int] = 0
-
-
 # 원본 이미지에서 편집된 이미지 등록.
 @router.post("/{crimeNumber}")
 async def update_crime(
     crimeNumber: str = Path(...),
-    registerTime: datetime = datetime.now(),
     ranking: int = 0,
     data: CrimeHistory = Body(...),
     conn: Connection = Depends(context_get_conn),
@@ -179,8 +156,8 @@ async def update_crime(
 
     # 검색 히스토리 등록
     query = """
-    INSERT INTO crimeDataHistory (crimeNumber, registerTime, ranking)
-    VALUES (:crimeNumber, :registerTime, :ranking)
+    INSERT INTO crimeDataHistory (crimeNumber, registerTime, ranking, top, mid, bottom ,outline)
+    VALUES (:crimeNumber, :registerTime, :ranking, :top, :mid, :bottom, :outline)
     """
 
     try:
@@ -208,8 +185,12 @@ async def update_crime(
             text(query),
             {
                 "crimeNumber": crimeNumber,
-                "registerTime": registerTime,
+                "registerTime": data.registerTime,
                 "ranking": ranking,
+                "top": str(data.top),
+                "mid": str(data.mid),
+                "bottom": str(data.bottom),
+                "outline": str(data.outline),
             },
         )
         conn.commit()

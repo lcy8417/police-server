@@ -1,3 +1,3 @@
-from image_search import Token
+from .image_search import Token
 
 __all__ = ["Token"]

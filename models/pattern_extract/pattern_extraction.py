@@ -8,60 +8,72 @@ import pandas as pd
 
 from .ml_decoder import add_ml_decoder_head
 
-class PatternExtractionModel:
 
+class PatternExtractionModel:
     def __init__(self):
         self.root_path = "./weights/pattern"
-        self.cuda = torch.device("cuda:0")
-        self.models = self.load_models()
-        self.model = ConvNextV2().to(self.cuda)
-        self.model.load_state_dict(
-            torch.load(os.path.join(self.root_path, "leaving_top.pt"))
-        )
+        self.cuda = torch.device("mps")
+        self.input_shape = (448, 448)
+        self.parts = ["top", "mid", "bottom", "all"]  # 사용할 모델 파트 지정
 
-        pattern_path = "./data/pattern/scas/scas_pattern_code_v2.0.xlsx"
+        self.models = self.load_models()
+
+        # 코드 데이터 불러오기
+        pattern_path = "./data/scas_pattern_code_v2.0.xlsx"
         df = pd.read_excel(pattern_path)
         self.code_data = {i: code for i, code in enumerate(df["code"].tolist())}
 
-        self.input_shape = (448, 448)
+        # 이미지 전처리
         self.transform = transforms.Compose(
             [
                 ResizeKeepAspectRatio(self.input_shape),
                 transforms.CenterCrop(self.input_shape),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
                 ),
             ]
         )
 
-    def predict(self, image, image_type, image_pos):
-        # TODO : 모델 예측 결과 작성
-        image = self.transform(image).unsqueeze(0).to(self.cuda)
-
-        outputs = self.model(image)
-
-        predicted = (outputs > 0.5).float()  # output thresholding
-        # 0.5보다 큰 원소의 인덱스 찾기
-        indices = torch.where(predicted[0] > 0.5)[0]
-
-        return [self.code_data[index] for index in indices.cpu().tolist()]
-
     def load_models(self):
-        return {
-            "leaving": {
-                "all": torch.load(os.path.join(self.root_path, "leaving_all.pt")),
-                # 'top': torch.load(os.path.join(self.root_path, 'leaving_top.pt')),
-                # 'mid': torch.load(os.path.join(self.root_path, 'leaving_mid.pt')),
-                # 'bottom': torch.load(os.path.join(self.root_path, 'leaving_bottom.pt'))
-            },
-            # 'reference': {
-            #     'all': torch.load(os.path.join(self.root_path, 'reference_all.pt')),
-            #     'top': torch.load(os.path.join(self.root_path, 'reference_top.pt')),
-            #     'mid': torch.load(os.path.join(self.root_path, 'reference_mid.pt')),
-            #     'bottom': torch.load(os.path.join(self.root_path, 'reference_bottom.pt'))
-            # }
-        }
+        models = {}
+        test_list = []
+        for type in ["crime", "shoes"]:
+            for part in self.parts:
+                model = ConvNextV2().to(self.cuda)
+                weight_path = os.path.join(self.root_path, f"{type}_{part}.pt")
+                test = torch.load(weight_path, map_location=self.cuda)
+                model.load_state_dict(test, strict=True)
+                test_list.append(test)
+
+                model.eval()
+                models[f"{type}_{part}"] = model
+
+        return models
+
+    def predict(
+        self, image: Image.Image, type: str = "crime", part: str = "top"
+    ) -> list:
+        """
+        Args:
+            image: PIL 이미지
+            part: 사용할 모델 종류 ("top", "mid", "bottom")
+        Returns:
+            List[str]: 예측된 코드 리스트
+        """
+        request_kind = f"{type}_{part}"
+        assert (
+            request_kind in self.models
+        ), f"{request_kind} 모델이 로드되지 않았습니다."
+
+        image_tensor = self.transform(image).unsqueeze(0).to(self.cuda)
+        with torch.no_grad():
+            output = self.models[request_kind](image_tensor)
+            predicted = (output > 0.5).float()[0]
+            indices = torch.where(predicted > 0.5)[0].cpu().tolist()
+
+        return [self.code_data[i] for i in indices]
 
 
 class ConvNextV2(nn.Module):
@@ -81,10 +93,11 @@ class ConvNextV2(nn.Module):
         self.backbone = timm.create_model(
             self.model_type[layer], pretrained=False, num_classes=1000
         )
+
         self.backbone.load_state_dict(torch.load(model_path))
         in_features = self.backbone.get_classifier().in_features
         self.backbone.head.fc = nn.Linear(in_features, num_classes)
-        self.backbone.to("cuda")
+        self.backbone.to("mps")
         if decoder:
             self.backbone = add_ml_decoder_head(
                 self.backbone,

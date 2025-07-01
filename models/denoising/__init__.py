@@ -1,3 +1,3 @@
-from denoising import DenoisingModel
+from .denoising import DenoisingModel
 
 __all__ = ["DenoisingModel"]

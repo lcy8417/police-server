@@ -1,18 +1,14 @@
-from image_search import Token
-from pattern_extract import PatternExtractionModel
-from inpainting.inpainting import InpaintingModel
-from denoising import DenoisingModel
-from background import BackgroundDeletionModel
+from .image_search import Token
+
+from .pattern_extract import PatternExtractionModel
+from .inpainting.inpainting import InpaintingModel
+from .denoising import DenoisingModel
 
 
 class Models:
     model_dict = {
         # image search models
-        "image_search": {
-            "Token": Token(
-                ckpt="weights/image/checkpoints/epoch270.pth",
-            ).to("cuda"),
-        },
+        "image_search": Token(),
         # pattern extraction models
         "pattern_extract": PatternExtractionModel(),
         # denoising models
@@ -20,7 +16,6 @@ class Models:
         # inpainting models
         "inpainting": InpaintingModel(),
         # background deletion models
-        "background": BackgroundDeletionModel(),
     }
 
     @classmethod

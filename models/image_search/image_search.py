@@ -7,50 +7,10 @@ import torch.nn.functional as F
 from torch import Tensor, nn
 from .backbone import ResNet
 import torchvision.transforms as transforms
+from .ops import *
 
 eps_fea_norm = 1e-5
 eps_l2_norm = 1e-10
-
-
-def _no_grad_trunc_normal_(tensor, mean, std, a, b):
-    def norm_cdf(x):
-        return (1.0 + math.erf(x / math.sqrt(2.0))) / 2.0
-
-    if (mean < a - 2 * std) or (mean > b + 2 * std):
-        warnings.warn(
-            "mean is more than 2 std from [a, b] in nn.init.trunc_normal_. "
-            "The distribution of values may be incorrect.",
-            stacklevel=2,
-        )
-
-    with torch.no_grad():
-        l = norm_cdf((a - mean) / std)
-        u = norm_cdf((b - mean) / std)
-
-        tensor.uniform_(2 * l - 1, 2 * u - 1)
-        tensor.erfinv_()
-        tensor.mul_(std * math.sqrt(2.0))
-        tensor.add_(mean)
-
-        tensor.clamp_(min=a, max=b)
-        return tensor
-
-
-def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
-    return _no_grad_trunc_normal_(tensor, mean, std, a, b)
-
-
-def drop_path(x: Tensor, drop_prob: float = 0.0, training: bool = False):
-    if drop_prob == 0.0 or not training:
-        return x
-    keep_prob = 1 - drop_prob
-    shape = (x.shape[0],) + (1,) * (
-        x.ndim - 1
-    )  # work with diff dim tensors, not just 2D ConvNets
-    random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
-    random_tensor.floor_()  # binarize
-    output = x.div(keep_prob) * random_tensor
-    return output
 
 
 class Identity(nn.Module):
@@ -272,7 +232,12 @@ class Token_Refine(nn.Module):
 # ----------------------------------------------------------------------------------------------------------------------------------
 # Token
 class Token(nn.Module):
-    def __init__(self, outputdim=1024, classifier_num=81313, ckpt=None):
+    def __init__(
+        self,
+        outputdim=1024,
+        classifier_num=81313,
+        ckpt="weights/search/epoch270.pth",
+    ):
         super().__init__()
         self.outputdim = 1024
         self.backbone = ResNet(
@@ -287,7 +252,9 @@ class Token(nn.Module):
         )
 
         # get model weights
-        state_dict = torch.load(ckpt, map_location="cpu")["state_dict"]
+        state_dict = torch.load(ckpt, map_location="cpu", weights_only=False)[
+            "state_dict"
+        ]
         self.load_state_dict(state_dict, strict=False)
 
     def forward_test(self, x):
