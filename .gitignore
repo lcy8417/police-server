@@ -1,0 +1,19 @@
+# 모든 .pt, .pth, .ckpt, .bin, .pkl 파일 무시
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.npy
+
+# static 내부 이미지들
+*.png
+
+# 기타 불필요한 캐시 등
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.DS_Store
+.env
+.cache/
+.venv/
