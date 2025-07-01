@@ -1,12 +1,13 @@
-# 모든 .pt, .pth, .ckpt, .bin, .pkl 파일 무시
-*.pt
-*.pth
-*.ckpt
-*.bin
-*.npy
+# weight 폴더 내 pt 파일들
+/weights/**/*.pt
+/weights/**/*.pth
+/weights/**/*.ckpt
+/weights/**/*.yaml
 
 # static 내부 이미지들
-*.png
+/static/**/*.png
+/static/**/*.jpg
+/static/**/*.jpeg
 
 # 기타 불필요한 캐시 등
 __pycache__/
