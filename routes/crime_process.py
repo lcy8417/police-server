@@ -158,6 +158,7 @@ async def extract_patterns(
     data: PatternsExtractRequest = Body(...),
 ):
 
+    print(data.image)
     model = models.get("pattern_extract")
 
     top, mid, bottom, all = patterns_prepaire(

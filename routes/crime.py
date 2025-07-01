@@ -100,6 +100,11 @@ async def get_crimes(conn: Connection = Depends(context_get_conn)):
                 "mid": safe_json_loads(row._mapping["mid"]),
                 "bottom": safe_json_loads(row._mapping["bottom"]),
                 "outline": safe_json_loads(row._mapping["outline"]),
+                "editImage": (
+                    ("data:image/png;base64," + row._mapping["edit_image"])
+                    if row._mapping["edit_image"]
+                    else None
+                ),
             }
             for row in rows
         ]
@@ -173,6 +178,8 @@ async def get_crime_detail(
 
         result.close()
 
+        data["edit_image"] = "data:image/png;base64," + data.get("edit_image", "")
+
         return JSONResponse(content=data)
     except SQLAlchemyError as e:
         print(e)
@@ -182,7 +189,7 @@ async def get_crime_detail(
         )
 
 
-# 원본 이미지에서 편집된 이미지 등록.
+# 원본 이미지에서 편집된 정보 등록.
 @router.post("/{crime_number}")
 async def update_crime(
     crime_number: str = Path(...),
@@ -197,8 +204,8 @@ async def update_crime(
 
     # 검색 히스토리 등록
     query = """
-    INSERT INTO crime_data_history (crime_number, register_time, ranking, top, mid, bottom ,outline, matching_shoes)
-    VALUES ( :crime_number, :register_time, :ranking, :top, :mid, :bottom, :outline, :matching_shoes)
+    INSERT INTO crime_data_history (crime_number, edit_image, register_time, ranking, top, mid, bottom ,outline, matching_shoes)
+    VALUES ( :crime_number, :edit_image, :register_time, :ranking, :top, :mid, :bottom, :outline, :matching_shoes)
     """
 
     try:
@@ -233,6 +240,7 @@ async def update_crime(
                 "bottom": json.dumps(data.bottom),
                 "outline": json.dumps(data.outline),
                 "matching_shoes": data.matchingShoes,
+                "edit_image": data.editImage,
             },
         )
         conn.commit()

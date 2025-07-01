@@ -161,6 +161,7 @@ def patterns_prepaire(
     if is_encoded:
         image = bytes_to_np(image_data.split(",")[1])
     else:
+
         shoes_path = osp.join(shoes_root, image_data + ".png")
         crime_path = osp.join(crime_root, image_data + ".png")
         if osp.exists(shoes_path):

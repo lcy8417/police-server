@@ -10,7 +10,7 @@ create table crime_data
 crime_number varchar(100) not null primary key, 
 image_number varchar(100) null,
 crime_name varchar(300) null,
-fine_time varchar(300) null,
+find_time varchar(300) null,
 request_office varchar(300) null,
 find_method varchar(300) null,
 state integer not null default 0,
@@ -29,10 +29,12 @@ edit_time text null,
 register_time datetime not null,
 ranking integer not null default 0,
 crime_number varchar(100) not null,
+matching_shoes varchar(300) null,
 top varchar(300) null,
 mid varchar(300) null,
 bottom varchar(300) null,
 outline varchar(3000) null,
+edit_image longtext null,
 FOREIGN KEY (crime_number) REFERENCES crime_data(crime_number)
 );
 

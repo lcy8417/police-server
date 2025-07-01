@@ -27,11 +27,7 @@ class CrimeHistory(BaseModel):
     outline: List[List[Union[str, int]]]
     ranking: int = 0
     matchingShoes: str = ""
-    # zoom: Optional[int] = 0
-    # contrast: Optional[int] = 0
-    # saturation: Optional[int] = 0
-    # brightness: Optional[int] = 0
-    # rotate: Optional[int] = 0
+    editImage: str = None
 
 
 class PatternUpdate(BaseModel):

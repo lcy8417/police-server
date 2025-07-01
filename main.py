@@ -1,12 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from routes import crime, shoes, crime_process, search
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+
+class NoCacheStaticFiles(StaticFiles):
+    async def get_response(self, path: str, request: Request) -> Response:
+        response = await super().get_response(path, request)
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+
 app = FastAPI(debug=True)
 
 app.mount(
-    "/crime_images", StaticFiles(directory="static/crime_images"), name="crime_images"
+    "/crime_images",
+    NoCacheStaticFiles(directory="static/crime_images"),
+    name="crime_images",
 )
 
 app.mount(
