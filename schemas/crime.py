@@ -1,5 +1,5 @@
-from typing import List, Optional, Tuple
-from pydantic import BaseModel
+from typing import List, Optional, Tuple, Union
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 
@@ -21,12 +21,25 @@ class RegisterForm(BaseModel):
 class CrimeHistory(BaseModel):
     image: str
     registerTime: datetime = datetime.now()
-    top: List[Tuple[str, int]] = []
-    mid: List[Tuple[str, int]] = []
-    bottom: List[Tuple[str, int]] = []
-    outline: List[Tuple[str, int]] = []
+    top: List[List[Union[str, int]]]
+    mid: List[List[Union[str, int]]]
+    bottom: List[List[Union[str, int]]]
+    outline: List[List[Union[str, int]]]
+    ranking: int = 0
+    matchingShoes: str = ""
     # zoom: Optional[int] = 0
     # contrast: Optional[int] = 0
     # saturation: Optional[int] = 0
     # brightness: Optional[int] = 0
     # rotate: Optional[int] = 0
+
+
+class PatternUpdate(BaseModel):
+    top: List[Tuple[str, int]] = []
+    mid: List[Tuple[str, int]] = []
+    bottom: List[Tuple[str, int]] = []
+    outline: List[Tuple[str, int]] = []
+
+
+class EditImageInsert(BaseModel):
+    image: str = None
