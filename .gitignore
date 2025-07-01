@@ -1,0 +1,26 @@
+# Python 관련
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 환경 파일
+.env
+*.env
+
+# VSCode, JetBrains 등 IDE 설정
+.vscode/
+.idea/
+
+# 로그 파일
+*.log
+
+# 캐시 및 임시 파일
+*.tmp
+*.swp
+
+# Jupyter Notebook 체크포인트
+.ipynb_checkpoints/
+
+# 제외할 폴더
+/weights/
+/static/
