@@ -1,0 +1,18 @@
+1_s32b
+1_s32p
+1_s51c
+1_s71i
+1_s73e
+1_s73p
+1_s81c
+2_s32i
+2_n51_04
+2_s51c
+2_s51k
+2_s81e
+3_s32b
+3_s32p
+3_s51e
+3_s73c
+4_s10m
+5_¹®ÀÚ¿­_ADIDAS CLOUFOAM SUPER

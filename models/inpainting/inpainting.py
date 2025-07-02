@@ -53,6 +53,8 @@ class InpaintingModel:
         with torch.no_grad():
             batch = move_to_device(batch, self.device)
             batch["mask"] = (batch["mask"] > 0) * 1
+
+            print(batch["mask"], batch["image"].shape, batch["mask"].shape)
             batch = self.model(batch)
             cur_res = batch["inpainted"][0].permute(1, 2, 0).detach().cpu().numpy()
 

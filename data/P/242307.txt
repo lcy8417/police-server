@@ -1,0 +1,16 @@
+1_s32b
+1_s32i
+1_s51b
+1_s51c
+1_s51d
+1_s51k
+2_s81c
+2_s81e
+3_s32b
+3_s32i
+3_s51c
+3_s6c2
+3_s73s
+4_s10d
+4_s10e
+5_¹®ÀÚ¿­_WORLD CUP  MADE IN KOREA

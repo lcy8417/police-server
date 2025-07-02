@@ -1,0 +1,20 @@
+1_s32b
+1_s32i
+1_s62a
+1_n71_02
+1_s72g
+1_s81c
+1_s81e
+2_s32b
+2_s32i
+2_s62a
+2_s81e
+3_s32b
+3_s32i
+3_s51b
+3_s51c
+3_s62a
+3_s62o
+3_s81e
+4_s10m
+5_¹®ÀÚ¿­_EXR      PROGRESSIVE         FUNCTION   MADE ITSELF
