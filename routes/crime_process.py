@@ -29,10 +29,8 @@ from schemas.crime_process import (
     PatternsExtractRequest,
     CrimeSearchRequest,
 )
-import json
 import torch
 from models.image_search.image_search_adapter import ImageSearchAdapter
-from db.database import context_get_conn
 
 
 router = APIRouter(prefix="/crime", tags=["Crime Processing"])
@@ -160,6 +158,7 @@ async def extract_patterns(
     data: PatternsExtractRequest = Body(...),
 ):
 
+    print(data.image)
     model = models.get("pattern_extract")
 
     top, mid, bottom, all = patterns_prepaire(
@@ -182,58 +181,13 @@ async def search_crime(
     crime_number: str = Path(...),
     page: int = Query(0),
     data: CrimeSearchRequest = Body(...),
-    conn: Connection = Depends(context_get_conn),
 ):
+    model = models.get("image_search").to("mps")
+    model.eval()
 
-    try:
-        #### 1. 🔍 유사 이미지 검색 모델 준비 (모델 로드 및 추론 준비)
+    query_image = search_prepare(image_data=data.image, image_size=1024, device="mps")
 
-        model = models.get("image_search").to("mps")
-        model.eval()
+    page_images = ImageSearchAdapter.calculate_distances(query_image, model, page=page)
+    total_data = list(map(lambda x: {"image": x, "similarity": "95%"}, page_images))
 
-        query_image = search_prepare(
-            image_data=data.image, image_size=1024, device="mps"
-        )
-        page_images = ImageSearchAdapter.calculate_distances(
-            query_image=query_image, model=model
-        )
-
-        #### 2. 📦 전체 신발 문양 정보 조회 (DB에서 정보 가져오기)
-        # TODO 추후 캐싱 필요: 신발이 업데이트 될 때만 로드되도록 최적화 필요
-        # query = """
-        # SELECT model_number, top, mid, bottom, outline FROM shoes_data
-        # """
-
-        # result = conn.execute(text(query)).fetchall()
-
-        # if not result:
-        #     return JSONResponse(content={"result": []})
-
-        result = ImageSearchAdapter.load_patterns_info()
-
-        if not result:
-            return JSONResponse(content={"result": []})
-
-        filtered_images = ImageSearchAdapter.essential_patterns_filter(
-            page_images=page_images,
-            result=result,
-            data=data,
-        )
-
-        total_data = list(
-            map(
-                lambda x: {"image": x, "similarity": "95%"},
-                filtered_images[page * 50 : (page + 1) * 50],
-            )
-        )
-
-        return JSONResponse(
-            content={"result": total_data, "total": len(filtered_images)}
-        )
-
-    except SQLAlchemyError as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="데이터베이스 쿼리 중 오류가 발생했습니다.",
-        )
+    return JSONResponse(content={"result": total_data})

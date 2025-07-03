@@ -6,23 +6,17 @@ from sqlalchemy import text, Connection
 from sqlalchemy.exc import SQLAlchemyError
 from db.database import context_get_conn
 
+from typing import Optional, List, Tuple
+from datetime import datetime
 import base64
 import os.path as osp
 import os
+from ast import literal_eval
 import json
-from dotenv import load_dotenv
 
 from schemas.shoes import ShoesRequest, ShoesUpdate
 
-load_dotenv()
-
 router = APIRouter(prefix="/shoes", tags=["Shoes"])
-
-IP = os.getenv("IP")
-PORT = os.getenv("PORT")
-SHOES_IMG_DIR = os.getenv("SHOES_IMG_DIR")
-
-img_root = f"http://{IP}:{PORT}/{SHOES_IMG_DIR}"
 
 
 @router.post("/register")
@@ -32,28 +26,25 @@ async def register_shoes(
 ):
     try:
         query = """
-        INSERT INTO shoes_data (
-            find_location, manufacturer, emblem,
-            model_number, find_year, top, mid, bottom, outline
+        INSERT INTO shoesData (
+            findLocation, manufacturer, emblem, modelNumber, findYear, top, mid, bottom
             ) VALUES (
-            :find_location, :manufacturer, :emblem,
-            :model_number, :find_year, :top, :mid, :bottom, :outline
-            )
+            :findLocation, :manufacturer, :emblem, :modelNumber, :findYear, :top, :mid, :bottom
+        )
         """
         # 데이터베이스에 신발 정보 저장
 
         conn.execute(
             text(query),
             {
-                "find_location": data.findLocation,
+                "findLocation": data.findLocation,
                 "manufacturer": data.manufacturer,
                 "emblem": data.emblem,
-                "model_number": data.modelNumber,
-                "find_year": data.findYear,
+                "modelNumber": data.modelNumber,
+                "findYear": data.findYear,
                 "top": json.dumps(data.top) if data.top else json.dumps([]),
                 "mid": json.dumps(data.mid) if data.mid else json.dumps([]),
                 "bottom": json.dumps(data.bottom) if data.bottom else json.dumps([]),
-                "outline": json.dumps(data.outline) if data.outline else json.dumps([]),
             },
         )
         conn.commit()
@@ -85,28 +76,28 @@ async def register_shoes(
         )
 
 
-@router.put("/{model_number}")
+@router.put("/{modelNumber}")
 async def shoes_info_update(
-    model_number: str = Path(..., description="수정할 신발의 모델 번호"),
+    modelNumber: str = Path(..., description="수정할 신발의 모델 번호"),
     data: ShoesUpdate = Body(..., description="신발 수정 정보"),
     conn: Connection = Depends(context_get_conn),
 ):
     try:
         query = """
-        UPDATE shoes_data
-        SET model_number = :model_number, find_location = :find_location, manufacturer = :manufacturer,
+        UPDATE shoesData
+        SET modelNumber = :modelNumber, findLocation = :findLocation, manufacturer = :manufacturer,
             emblem = :emblem, top = :top, mid = :mid, bottom = :bottom, outline = :outline
         
-        WHERE model_number = :model_number
+        WHERE modelNumber = :modelNumber
         """
 
         conn.execute(
             text(query),
             {
-                "model_number": str(model_number),
-                "find_location": data.findLocation,
+                "modelNumber": str(modelNumber),
+                "findLocation": data.findLocation,
                 "manufacturer": data.manufacturer,
-                "find_year": data.findYear,
+                "findYear": data.findYear,
                 "emblem": data.emblem,
                 "top": json.dumps(data.top),
                 "mid": json.dumps(data.mid),
@@ -135,27 +126,26 @@ async def get_all_shoes(
 ):
     try:
         query = """
-        SELECT model_number, find_location, manufacturer, find_year, emblem, top, mid, bottom, outline FROM shoes_data
+        SELECT modelNumber, findLocation, manufacturer, findYear, emblem, top, mid, bottom FROM shoesData
         ORDER BY id DESC
-        LIMIT 50 OFFSET :offset
+        LIMIT 10 OFFSET :offset
         """
-        offset = page * 50
+        offset = page * 10
         result = conn.execute(text(query), {"offset": offset})
         rows = result.fetchall()
-
-        print("총 길이" + str(len(rows)))
 
         if not rows:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"message": "등록된 신발 정보가 없습니다."},
             )
+        img_root = "http://localhost:8000/shoes_images/B"
 
         data = [dict(row._mapping) for row in rows]
         data = [
             {
                 **dict(row._mapping),
-                "image": osp.join(img_root, f"{row._mapping['model_number']}.png"),
+                "image": osp.join(img_root, f"{row._mapping['modelNumber']}.png"),
                 "top": (
                     json.loads(row._mapping["top"]) if row._mapping["top"] else None
                 ),
@@ -165,11 +155,6 @@ async def get_all_shoes(
                 "bottom": (
                     json.loads(row._mapping["bottom"])
                     if row._mapping["bottom"]
-                    else None
-                ),
-                "outline": (
-                    json.loads(row._mapping["outline"])
-                    if row._mapping["outline"]
                     else None
                 ),
             }
@@ -190,52 +175,9 @@ async def get_all_shoes(
         )
 
 
-@router.get("/{model_number}")
-async def get_shoe_detail(
-    model_number: str = Path(..., description="신발 모델 번호"),
-    conn: Connection = Depends(context_get_conn),
-):
-    query = """
-            SELECT model_number, find_location, manufacturer, find_year, emblem, top, mid, bottom, outline FROM shoes_data
-            WHERE model_number = :model_number
-            """
-
-    try:
-        result = conn.execute(text(query), {"model_number": model_number})
-        row = result.fetchone()
-
-        if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="해당 모델 번호의 신발 정보가 없습니다.",
-            )
-
-        data = {
-            **dict(row._mapping),
-            "image": osp.join(img_root, f"{row._mapping['model_number']}.png"),
-            "top": json.loads(row._mapping["top"]) if row._mapping["top"] else None,
-            "mid": json.loads(row._mapping["mid"]) if row._mapping["mid"] else None,
-            "bottom": (
-                json.loads(row._mapping["bottom"]) if row._mapping["bottom"] else None
-            ),
-            "outline": (
-                json.loads(row._mapping["outline"]) if row._mapping["outline"] else None
-            ),
-        }
-
-        result.close()
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=data,
-        )
-
-    except SQLAlchemyError as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="요청하신 서비스가 잠시 내부적으로 문제가 발생하였습니다.",
-        )
+@router.get("/{id}")
+async def get_shoe_detail(id: int):
+    pass
 
 
 @router.put("/{id}/edit")

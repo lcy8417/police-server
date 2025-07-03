@@ -34,12 +34,9 @@ def path_to_seg(
     rend_width, rend_height = render_size
     ori_width, ori_height = image.shape[1], image.shape[0]
 
-    print(
-        f"렌더링 크기: {rend_width}x{rend_height}, 원본 크기: {ori_width}x{ori_height}"
-    )
     # 경로일때만 실제 크기와 렌더링 크기를 비교
-    width_scale = ori_width / rend_width
-    height_scale = ori_height / rend_height
+    width_scale = (ori_width / rend_width) if is_encoded else 1
+    height_scale = (ori_height / rend_height) if is_encoded else 1
 
     if image is None:
         raise FileNotFoundError("이미지를 불러올 수 없습니다.")
@@ -203,7 +200,7 @@ def search_prepare(
     device: str = "cpu",
 ):
     if image_data.startswith("data:image"):
-        query_image = bytes_to_pil(image_data.split(",")[1])
+        query_image = bytes_to_pil(image_data)
     else:
         query_image = name_to_pil(crime_root, image_data)
 

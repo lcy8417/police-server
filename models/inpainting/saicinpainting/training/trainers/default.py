@@ -1,5 +1,4 @@
 import logging
-import cv2
 
 import torch
 import torch.nn.functional as F
@@ -106,15 +105,6 @@ class DefaultInpaintingTrainingModule(BaseInpaintingTrainingModule):
             masked_img = torch.cat([masked_img, mask], dim=1)
 
         batch["predicted_image"] = self.generator(masked_img)
-
-        # 모종의 이유로 generator가 예측한 이미지의 크기가 mask와 다를 수 있음
-        batch["predicted_image"] = F.interpolate(
-            batch["predicted_image"],
-            size=mask.shape[2:],
-            mode="bilinear",
-            align_corners=False,
-        )
-        
         batch["inpainted"] = (
             mask * batch["predicted_image"] + (1 - mask) * batch["image"]
         )

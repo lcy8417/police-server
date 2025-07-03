@@ -25,9 +25,9 @@ class CrimeHistory(BaseModel):
     mid: List[List[Union[str, int]]]
     bottom: List[List[Union[str, int]]]
     outline: List[List[Union[str, int]]]
-    ranking: Optional[int] = None
-    matchingShoes: Optional[str] = ""
-    editImage: Optional[str] = None
+    ranking: int = 0
+    matchingShoes: str = ""
+    editImage: str = None
 
 
 class PatternUpdate(BaseModel):

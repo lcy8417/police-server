@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from pydantic import BaseModel
 
 
@@ -19,10 +19,10 @@ class PatternsExtractRequest(BaseModel):
     line_ys: List[int]
     render_size: List[float]
 
-
 class CrimeSearchRequest(BaseModel):
     image: str
-    top: Optional[List[str]] = []
-    mid: Optional[List[str]] = []
-    bottom: Optional[List[str]] = []
-    outline: Optional[List[str]] = []
+    top: List[str] = []
+    mid: List[str] = []
+    bottom: List[str] = []
+    outline: List[str] = []
+
