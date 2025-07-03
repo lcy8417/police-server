@@ -6,17 +6,23 @@ from sqlalchemy import text, Connection
 from sqlalchemy.exc import SQLAlchemyError
 from db.database import context_get_conn
 
-from typing import Optional, List, Tuple
-from datetime import datetime
 import base64
 import os.path as osp
 import os
-from ast import literal_eval
 import json
+from dotenv import load_dotenv
 
 from schemas.shoes import ShoesRequest, ShoesUpdate
 
+load_dotenv()
+
 router = APIRouter(prefix="/shoes", tags=["Shoes"])
+
+IP = os.getenv("IP")
+PORT = os.getenv("PORT")
+SHOES_IMG_DIR = os.getenv("SHOES_IMG_DIR")
+
+img_root = f"http://{IP}:{PORT}/{SHOES_IMG_DIR}"
 
 
 @router.post("/register")
@@ -144,7 +150,6 @@ async def get_all_shoes(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"message": "등록된 신발 정보가 없습니다."},
             )
-        img_root = "http://localhost:8000/shoes_images/B"
 
         data = [dict(row._mapping) for row in rows]
         data = [
@@ -204,8 +209,6 @@ async def get_shoe_detail(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="해당 모델 번호의 신발 정보가 없습니다.",
             )
-
-        img_root = "http://localhost:8000/shoes_images/B"
 
         data = {
             **dict(row._mapping),

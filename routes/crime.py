@@ -12,9 +12,17 @@ import base64
 import os.path as osp
 import os
 from utils.json_utils import safe_json_loads
-
 from schemas.crime import RegisterForm, CrimeHistory, PatternUpdate, EditImageInsert
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+IP = os.getenv("IP")
+PORT = os.getenv("PORT")
+CRIME_IMG_DIR = os.getenv("CRIME_IMG_DIR")
+
+img_root = f"http://{IP}:{PORT}/{CRIME_IMG_DIR}"
 
 router = APIRouter(prefix="/crime", tags=["Crime"])
 
@@ -86,8 +94,6 @@ async def get_crimes(conn: Connection = Depends(context_get_conn)):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="조회된 사건이 없습니다.",
             )
-
-        img_root = "http://localhost:8000/crime_images"
 
         rows = result.fetchall()
 

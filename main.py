@@ -2,6 +2,13 @@ from fastapi import FastAPI, Request, Response
 from routes import crime, shoes, crime_process, search
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+CRIME_IMG_DIR = os.getenv("CRIME_IMG_DIR")
+SHOES_IMG_DIR = os.getenv("SHOES_IMG_DIR")
 
 
 class NoCacheStaticFiles(StaticFiles):
@@ -14,9 +21,9 @@ class NoCacheStaticFiles(StaticFiles):
 app = FastAPI(debug=True)
 
 app.mount(
-    "/crime_images",
-    NoCacheStaticFiles(directory="static/crime_images"),
-    name="crime_images",
+    "/" + CRIME_IMG_DIR,
+    NoCacheStaticFiles(directory=f"static/{CRIME_IMG_DIR}"),
+    name=CRIME_IMG_DIR,
 )
 
 app.mount(
@@ -26,9 +33,9 @@ app.mount(
 )
 
 app.mount(
-    "/shoes_images/B",
-    StaticFiles(directory="static/shoes_images/B"),
-    name="shoes_images/B",
+    "/" + SHOES_IMG_DIR,
+    StaticFiles(directory=f"static/{SHOES_IMG_DIR}"),
+    name=SHOES_IMG_DIR,
 )
 
 app.add_middleware(
