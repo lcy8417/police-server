@@ -26,7 +26,8 @@ def make_training_model(config):
 
 def load_checkpoint(train_config, path, map_location="cuda", strict=True):
     model: torch.nn.Module = make_training_model(train_config)
-    state = torch.load(path, map_location=map_location, weights_only=False)
+    state = torch.load(path, map_location=map_location)
+    
     model.load_state_dict(state["state_dict"], strict=strict)
     model.on_load_checkpoint(state)
     return model

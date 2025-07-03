@@ -188,11 +188,11 @@ async def search_crime(
     try:
         #### 1. 🔍 유사 이미지 검색 모델 준비 (모델 로드 및 추론 준비)
 
-        model = models.get("image_search").to("mps")
+        model = models.get("image_search").to("cuda")
         model.eval()
 
         query_image = search_prepare(
-            image_data=data.image, image_size=1024, device="mps"
+            image_data=data.image, image_size=1024, device="cuda"
         )
         page_images = ImageSearchAdapter.calculate_distances(
             query_image=query_image, model=model

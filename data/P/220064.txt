@@ -1,0 +1,17 @@
+1_s32e
+1_s32f
+1_s81c
+2_s81b
+2_s82a
+3_s32b
+3_s71b
+3_s71h
+3_s73a
+3_s73q
+3_s73s
+3_s81c
+3_s81e
+4_n10_03
+4_s10f
+4_s10i
+5_¹®ÀÚ¿­_EXR FUNCTION MADE ITSELF

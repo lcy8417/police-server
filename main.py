@@ -33,7 +33,7 @@ app.mount(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React 앱 주소
+    allow_origins=["*"],  # React 앱 주소
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

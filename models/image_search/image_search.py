@@ -252,7 +252,7 @@ class Token(nn.Module):
         )
 
         # get model weights
-        state_dict = torch.load(ckpt, map_location="cpu", weights_only=False)[
+        state_dict = torch.load(ckpt, map_location="cpu")[
             "state_dict"
         ]
         self.load_state_dict(state_dict, strict=False)

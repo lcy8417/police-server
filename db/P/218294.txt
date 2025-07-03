@@ -1,0 +1,16 @@
+1_s32b
+1_s22h
+1_s32e
+2_s32b
+2_s81d
+2_s32e
+2_s81e
+2_s22h
+3_s32e
+3_s72g
+3_s22h
+3_s32b
+4_s10n
+4_s10l
+4_s10j
+5_¹®ÀÚ¿­_PRO-SPECS MADE IN KOREA

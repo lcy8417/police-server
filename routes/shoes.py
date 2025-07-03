@@ -22,7 +22,7 @@ IP = os.getenv("IP")
 PORT = os.getenv("PORT")
 SHOES_IMG_DIR = os.getenv("SHOES_IMG_DIR")
 
-img_root = f"http://{IP}:{PORT}/{SHOES_IMG_DIR}"
+img_root = f"http://{IP}:{PORT}/{SHOES_IMG_DIR}/B"
 
 
 @router.post("/register")
@@ -33,10 +33,10 @@ async def register_shoes(
     try:
         query = """
         INSERT INTO shoes_data (
-            find_location, manufacturer, emblem,
+            image, find_location, manufacturer, emblem,
             model_number, find_year, top, mid, bottom, outline
             ) VALUES (
-            :find_location, :manufacturer, :emblem,
+            :image, :find_location, :manufacturer, :emblem,
             :model_number, :find_year, :top, :mid, :bottom, :outline
             )
         """
@@ -45,6 +45,7 @@ async def register_shoes(
         conn.execute(
             text(query),
             {
+                'image': data.modelNumber,
                 "find_location": data.findLocation,
                 "manufacturer": data.manufacturer,
                 "emblem": data.emblem,
@@ -53,7 +54,7 @@ async def register_shoes(
                 "top": json.dumps(data.top) if data.top else json.dumps([]),
                 "mid": json.dumps(data.mid) if data.mid else json.dumps([]),
                 "bottom": json.dumps(data.bottom) if data.bottom else json.dumps([]),
-                "outline": json.dumps(data.outline) if data.outline else json.dumps([]),
+                "outline": json.dumps(data.outline) if data.outline else json.du([]),
             },
         )
         conn.commit()

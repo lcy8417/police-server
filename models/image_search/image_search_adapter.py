@@ -18,13 +18,15 @@ ref_root_path = "static/shoes_images/B"
 class ImageSearchAdapter:
 
     ref_memory = "data/ref_vecs.npy"
-    device = "mps"
+    device = "cuda"
     ref_names = list(map(lambda x: x.split(".")[0], os.listdir(ref_root_path)))
+    ref_names = sorted(ref_names)
+
     ref_images = list(map(lambda x: osp.join(ref_root_path, x) + ".png", ref_names))
 
-    # TODO: ref_vecs 정렬 코드 넣어줘야함.
+    
     ref_vecs = np.load(ref_memory) if osp.exists(ref_memory) else None
-    image_size = 64
+    image_size = 32
 
     patterns_info = None
 
@@ -34,7 +36,7 @@ class ImageSearchAdapter:
         if cls.ref_vecs is None:
             cls.ref_loader = DataLoader(
                 ImageFromList(Image_paths=cls.ref_images, imsize=image_size),
-                batch_size=4,
+                batch_size=30,
                 shuffle=False,
             )
 
@@ -43,7 +45,7 @@ class ImageSearchAdapter:
                 loader=cls.ref_loader,
                 device=cls.device,
                 img_size=len(cls.ref_images),
-                batch_size=4,
+                batch_size=30,
             ).numpy()
 
             # memory에 저장
@@ -70,7 +72,7 @@ class ImageSearchAdapter:
     @classmethod
     @torch.no_grad()
     def extract_vectors(
-        cls, net, loader, ms=[1], device=torch.device("mps"), img_size=0, batch_size=1
+        cls, net, loader, ms=[1], device=torch.device("cuda"), img_size=0, batch_size=1
     ):
         net.eval()
         vecs = torch.zeros(img_size, net.outputdim)

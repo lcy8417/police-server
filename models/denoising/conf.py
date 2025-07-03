@@ -5,7 +5,9 @@ import numpy as np
 
 class Config:
     def __init__(self):
-        self.device = "mps"
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"[Device] {self.device}")
+
         self.lr = 0.001
         self.iterations = 100
         self.illu_factor = 1
@@ -19,7 +21,7 @@ class Config:
         self.sigma = 3
         self.kx = cv2.getGaussianKernel(self.g_kernel_size, self.sigma)
         self.ky = cv2.getGaussianKernel(self.g_kernel_size, self.sigma)
-        self.gaussian_kernel = np.multiply(self.kx, np.transpose(self.ky))
+        self.gaussian_kernel = np.multiply(self.kx, self.ky.T)
         self.gaussian_kernel = (
             torch.FloatTensor(self.gaussian_kernel)
             .unsqueeze(0)

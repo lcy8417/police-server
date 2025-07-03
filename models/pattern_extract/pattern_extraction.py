@@ -12,7 +12,7 @@ from .ml_decoder import add_ml_decoder_head
 class PatternExtractionModel:
     def __init__(self):
         self.root_path = "./weights/pattern"
-        self.cuda = torch.device("mps")
+        self.cuda = torch.device("cuda")
         self.input_shape = (448, 448)
         self.parts = ["top", "mid", "bottom", "all"]  # 사용할 모델 파트 지정
 
@@ -42,7 +42,8 @@ class PatternExtractionModel:
         for type in ["crime", "shoes"]:
             for part in self.parts:
                 model = ConvNextV2().to(self.cuda)
-                weight_path = os.path.join(self.root_path, f"{type}_{part}.pt")
+                weight_path = f"{self.root_path}/{type}_{part}.pt"
+                # weight_path = os.path.join(self.root_path, f"{type}_{part}.pt")
                 test = torch.load(weight_path, map_location=self.cuda)
                 model.load_state_dict(test, strict=True)
                 test_list.append(test)
@@ -97,7 +98,7 @@ class ConvNextV2(nn.Module):
         self.backbone.load_state_dict(torch.load(model_path))
         in_features = self.backbone.get_classifier().in_features
         self.backbone.head.fc = nn.Linear(in_features, num_classes)
-        self.backbone.to("mps")
+        self.backbone.to("cuda")
         if decoder:
             self.backbone = add_ml_decoder_head(
                 self.backbone,
