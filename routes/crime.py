@@ -12,9 +12,17 @@ import base64
 import os.path as osp
 import os
 from utils.json_utils import safe_json_loads
-
 from schemas.crime import RegisterForm, CrimeHistory, PatternUpdate, EditImageInsert
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+IP = os.getenv("IP")
+PORT = os.getenv("PORT")
+CRIME_IMG_DIR = os.getenv("CRIME_IMG_DIR")
+
+img_root = f"http://{IP}:{PORT}/{CRIME_IMG_DIR}"
 
 router = APIRouter(prefix="/crime", tags=["Crime"])
 
@@ -87,8 +95,6 @@ async def get_crimes(conn: Connection = Depends(context_get_conn)):
                 detail="조회된 사건이 없습니다.",
             )
 
-        img_root = "http://localhost:8000/crime_images"
-
         rows = result.fetchall()
 
         data = [dict(row._mapping) for row in rows]
@@ -157,6 +163,44 @@ async def get_crime_detail(
         )
 
 
+# 현재 편집 이미지인지 조회
+@router.get("/{crime_number}/image_load")
+async def get_crime_detail(
+    crime_number: str = Path(..., description="조회할 사건의 번호"),
+    edit: bool = Query(False, description="편집된 이미지 여부"),
+    conn: Connection = Depends(context_get_conn),
+):
+    column = "edit_image" if edit else "crime_number"
+
+    query = f"""
+    SELECT {column} FROM crime_data WHERE crime_number = :crime_number 
+    """
+
+    try:
+        result = conn.execute(text(query), {"crime_number": crime_number})
+        row = result.fetchone()
+
+        if not row:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="해당 사건의 이미지가 없습니다.",
+            )
+
+        image_data = row[0]
+
+        return JSONResponse(
+            content={
+                "image": ("data:image/png;base64," + image_data if edit else image_data)
+            }
+        )
+    except SQLAlchemyError as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="요청하신 서비스가 잠시 내부적으로 문제가 발생하였습니다.",
+        )
+
+
 # crime_number의 history에서 id로 데이터 조회
 @router.get("/history/{id}")
 async def get_crime_detail(
@@ -178,7 +222,8 @@ async def get_crime_detail(
 
         result.close()
 
-        data["edit_image"] = "data:image/png;base64," + data.get("edit_image", "")
+        if data.get("edit_image"):
+            data["edit_image"] = "data:image/png;base64," + data.get("edit_image", "")
 
         return JSONResponse(content=data)
     except SQLAlchemyError as e:
@@ -217,17 +262,18 @@ async def update_crime(
 
         existing_result.close()
 
-        root = "static/crime_history/"
-        folder_path = osp.join(root, crime_number)
+        # root = "static/crime_history/"
+        # folder_path = osp.join(root, crime_number)
 
-        if not osp.exists(folder_path):
-            os.makedirs(folder_path)
+        # if not osp.exists(folder_path):
+        #     os.makedirs(folder_path)
 
-        # 인코딩된 image를 base64로 디코딩하여 저장
-        image_data = base64.b64decode(data.image)
-        save_path = osp.join(folder_path, f"{count + 1}.png")
-        with open(save_path, "wb") as f:
-            f.write(image_data)
+        # print(data.image)
+        # # 인코딩된 image를 base64로 디코딩하여 저장
+        # image_data = base64.b64decode(data.image)
+        # save_path = osp.join(folder_path, f"{count + 1}.png")
+        # with open(save_path, "wb") as f:
+        #     f.write(image_data)
 
         conn.execute(
             text(query),
