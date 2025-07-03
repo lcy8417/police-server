@@ -16,6 +16,8 @@ import json
 
 from schemas.shoes import ShoesRequest, ShoesUpdate
 
+# 주석
+
 router = APIRouter(prefix="/shoes", tags=["Shoes"])
 
 
