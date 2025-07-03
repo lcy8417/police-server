@@ -1,14 +1,3 @@
-# weight 폴더 내 pt 파일들
-/weights/**/*.pt
-/weights/**/*.pth
-/weights/**/*.ckpt
-/weights/**/*.yaml
-
-# static 내부 이미지들
-/static/**/*.png
-/static/**/*.jpg
-/static/**/*.jpeg
-=======
 # 모든 .pt, .pth, .ckpt, .bin, .pkl 파일 무시
 *.pt
 *.pth
@@ -16,10 +5,6 @@
 *.bin
 *.npy
 
-# static 내부 이미지들
-*.png
->>>>>>> b8c80c28 (test)
-=======
 
 # static 내부 이미지들
 /static/**/*.png
