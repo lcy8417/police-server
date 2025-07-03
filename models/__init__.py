@@ -19,7 +19,7 @@ class Models:
     }
 
     @classmethod
-    def get_all_models(cls):
+    def get_all_models(cls):  
         return cls.model_dict
 
     @classmethod
