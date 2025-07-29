@@ -1,19 +1,14 @@
 # 모든 .pt, .pth, .ckpt, .bin, .pkl 파일 무시
-weights/**/*.pt
-weights/**/*.pth
-weights/**/*.ckpt
-weights/**/*.bin
-weights/**/*.pkl
+/weights/**/*.pt
+/weights/**/*.pth
+/weights/**/*.ckpt
+/weights/**/*.bin
+/weights/**/*.pkl
 
 
 # 모든 .npy 파일 무시
-# .gitignore 파일 예시
-*.pt
-*.pth
-*.ckpt
-*.bin
 *.npy
-
+# .gitignore 파일 예시
 
 # static 내부 이미지들
 /static/**/*.png

@@ -54,7 +54,7 @@ async def register_shoes(
                 "top": json.dumps(data.top) if data.top else json.dumps([]),
                 "mid": json.dumps(data.mid) if data.mid else json.dumps([]),
                 "bottom": json.dumps(data.bottom) if data.bottom else json.dumps([]),
-                "outline": json.dumps(data.outline) if data.outline else json.du([]),
+                "outline": json.dumps(data.outline) if data.outline else json.dumps([]),
             },
         )
         conn.commit()
@@ -77,6 +77,7 @@ async def register_shoes(
             status_code=status.HTTP_201_CREATED,
             content={"message": "신발 정보가 성공적으로 등록되었습니다."},
         )
+    
 
     except SQLAlchemyError as e:
         print(e)

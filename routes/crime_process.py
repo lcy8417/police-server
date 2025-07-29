@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 import os.path as osp
 from utils.utils import path_to_seg, bytes_to_np
 import numpy as np
-from models import models
+from models import models, query_cache
 from utils.utils import (
     name_to_pil,
     bytes_to_pil,
@@ -100,58 +100,59 @@ async def inpaint_image(
         content={"image": f"data:image/png;base64,{np_to_bytes(res_img)}"}
     )
 
+import time
 
 @router.post("/{crime_number}/binarization")
 async def binarization_image(
     crime_number: str = Path(...),
     data: BinarizationRequest = Body(...),
 ):
+    start_time = time.time()
 
-    try:
-
+    print(query_cache, crime_number)
+    if crime_number not in query_cache:
         if data.image.startswith("data:image"):
-            print("Processing base64 encoded image data...")
             # base64 인코딩된 이미지 데이터 처리
-            img = bytes_to_np(data.image.split(",")[1], read_type="gray")
+            query_cache[crime_number] = bytes_to_np(data.image.split(",")[1], read_type="gray")
         else:
-            img = cv2.imread(
+            query_cache[crime_number] = cv2.imread(
                 osp.join("static/crime_images", crime_number + ".png"),
                 cv2.IMREAD_GRAYSCALE,
             )
 
-        max_value = 255
-        threshold = data.threshold
-        t_type = data.type.lower()  # 소문자로 통일
 
-        # 다양한 이진화 방식
-        if t_type == "standard":
-            _, binary_img = cv2.threshold(img, threshold, max_value, cv2.THRESH_BINARY)
-        elif t_type == "standard_inv":
-            _, binary_img = cv2.threshold(
-                img, threshold, max_value, cv2.THRESH_BINARY_INV
-            )
-        elif t_type == "trunc":
-            _, binary_img = cv2.threshold(img, threshold, max_value, cv2.THRESH_TRUNC)
-        elif t_type == "tozero":
-            _, binary_img = cv2.threshold(img, threshold, max_value, cv2.THRESH_TOZERO)
-        elif t_type == "tozero_inv":
-            _, binary_img = cv2.threshold(
-                img, threshold, max_value, cv2.THRESH_TOZERO_INV
-            )
-        else:
-            raise ValueError(f"지원하지 않는 이진화 타입입니다: {data.type}")
+    img = query_cache[crime_number]
 
-        return JSONResponse(
-            content={
-                "image": f"data:image/png;base64,{np_to_bytes(binary_img)}",
-            }
+    max_value = 255
+    threshold = data.threshold
+    t_type = data.type.lower()  # 소문자로 통일
+
+    # 다양한 이진화 방식
+    if t_type == "standard":
+        _, binary_img = cv2.threshold(img, threshold, max_value, cv2.THRESH_BINARY)
+    elif t_type == "standard_inv":
+        _, binary_img = cv2.threshold(
+            img, threshold, max_value, cv2.THRESH_BINARY_INV
         )
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="이미지 처리 중 오류가 발생했습니다.",
+    elif t_type == "trunc":
+        _, binary_img = cv2.threshold(img, threshold, max_value, cv2.THRESH_TRUNC)
+    elif t_type == "tozero":
+        _, binary_img = cv2.threshold(img, threshold, max_value, cv2.THRESH_TOZERO)
+    elif t_type == "tozero_inv":
+        _, binary_img = cv2.threshold(
+            img, threshold, max_value, cv2.THRESH_TOZERO_INV
         )
+    else:
+        raise ValueError(f"지원하지 않는 이진화 타입입니다: {data.type}")
+
+    end_time = time.time() - start_time
+
+    print(end_time)
+    return JSONResponse(
+        content={
+            "image": f"data:image/png;base64,{np_to_bytes(binary_img)}",
+        }
+    )
 
 
 @router.post("/{crime_number}/patterns_extract")
@@ -181,6 +182,7 @@ async def extract_patterns(
 async def search_crime(
     crime_number: str = Path(...),
     page: int = Query(0),
+    binary: str = Query('original'),
     data: CrimeSearchRequest = Body(...),
     conn: Connection = Depends(context_get_conn),
 ):

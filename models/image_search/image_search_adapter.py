@@ -24,7 +24,6 @@ class ImageSearchAdapter:
 
     ref_images = list(map(lambda x: osp.join(ref_root_path, x) + ".png", ref_names))
 
-    
     ref_vecs = np.load(ref_memory) if osp.exists(ref_memory) else None
     image_size = 32
 

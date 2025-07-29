@@ -25,6 +25,9 @@ class Models:
     @classmethod
     def get_model(cls, task):
         return cls.model_dict.get(task)
+    
+class Data:
+    query_dict = {}
 
-
+query_cache = Data.query_dict
 models = Models.get_all_models()
