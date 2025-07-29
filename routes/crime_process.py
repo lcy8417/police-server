@@ -123,6 +123,7 @@ async def binarization_image(
 
     img = query_cache[crime_number]
 
+    print(f"이미지 크기: {img.shape}")
     max_value = 255
     threshold = data.threshold
     t_type = data.type.lower()  # 소문자로 통일
@@ -182,7 +183,6 @@ async def extract_patterns(
 async def search_crime(
     crime_number: str = Path(...),
     page: int = Query(0),
-    binary: str = Query('original'),
     data: CrimeSearchRequest = Body(...),
     conn: Connection = Depends(context_get_conn),
 ):

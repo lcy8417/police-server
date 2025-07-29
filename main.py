@@ -31,6 +31,12 @@ app.mount(
     name="shoes_images/B",
 )
 
+app.mount(
+    "/shoes_images/shoerinsics",
+    StaticFiles(directory="static/shoes_images/shoerinsics"),
+    name="shoes_images/shoerinsics",
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # React 앱 주소
